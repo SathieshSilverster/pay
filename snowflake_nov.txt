@@ -1,0 +1,537 @@
+create or replace database nov
+
+create or replace schema snowflakedb
+
+CREATE TABLE departments (
+  department_id INT NOT NULL,
+  department_name VARCHAR(45) NOT NULL,
+  PRIMARY KEY (department_id)
+);
+
+INSERT INTO departments VALUES (2,'Fitness'),(3,'Footwear'),(4,'Apparel'),(5,'Golf'),(6,'Outdoors'),(7,'Fan Shop');
+
+CREATE TABLE categories (
+  category_id INT NOT NULL,
+  category_department_id INT NOT NULL,
+  category_name VARCHAR(45) NOT NULL,
+  PRIMARY KEY (category_id)
+); 
+
+
+INSERT INTO categories VALUES (1,2,'Football'),(2,2,'Soccer'),(3,2,'Baseball & Softball'),(4,2,'Basketball'),(5,2,'Lacrosse'),(6,2,'Tennis & Racquet'),(7,2,'Hockey'),(8,2,'More Sports'),(9,3,'Cardio Equipment'),(10,3,'Strength Training'),(11,3,'Fitness Accessories'),(12,3,'Boxing & MMA'),(13,3,'Electronics'),(14,3,'Yoga & Pilates'),(15,3,'Training by Sport'),(16,3,'As Seen on  TV!'),(17,4,'Cleats'),(18,4,'Men''s Footwear'),(19,4,'Women''s Footwear'),(20,4,'Kids'' Footwear'),(21,4,'Featured Shops'),(22,4,'Accessories'),(23,5,'Men''s Apparel'),(24,5,'Women''s Apparel'),(25,5,'Boys'' Apparel'),(26,5,'Girls'' Apparel'),(27,5,'Accessories'),(28,5,'Top Brands'),(29,5,'Shop By Sport'),(30,6,'Men''s Golf Clubs'),(31,6,'Women''s Golf Clubs'),(32,6,'Golf Apparel'),(33,6,'Golf Shoes'),(34,6,'Golf Bags & Carts'),(35,6,'Golf Gloves'),(36,6,'Golf Balls'),(37,6,'Electronics'),(38,6,'Kids'' Golf Clubs'),(39,6,'Team Shop'),(40,6,'Accessories'),(41,6,'Trade-In'),(42,7,'Bike & Skate Shop'),(43,7,'Camping & Hiking'),(44,7,'Hunting & Shooting'),(45,7,'Fishing'),(46,7,'Indoor/Outdoor Games'),(47,7,'Boating'),(48,7,'Water Sports'),(49,8,'MLB'),(50,8,'NFL'),(51,8,'NHL'),(52,8,'NBA'),(53,8,'NCAA'),(54,8,'MLS'),(55,8,'International Soccer'),(56,8,'World Cup Shop'),(57,8,'MLB Players'),(58,8,'NFL Players');
+
+
+select * from employees
+
+
+------regexp_instr(arg1,arg2,arg3,arg4)
+----arg1--actual col
+-----arg2---selected str
+----arg3--starting position
+----arg4---occurance
+1&2 mandatory
+
+----------regexp_instr
+select 'welcomee',regexp_instr('welcomee','e',1,3)
+
+--------substr(arg1,arg2,arg3)
+----arg1--actual col
+-----arg2--starting position
+-----arg3---ending position
+
+select 'welcome',substr('welcome',4,4)
+
+select * from customersn limit 150
+
+select email,substr(email,1,regexp_instr(email,'@')-1) as user from customersn limit 10
+
+
+select abs(-100) ---output-->100
+
+select mod(10,2) --->0
+select 10/2---->5.0000
+select round(5.786)--->6
+select trunc(15.788)--->15
+
+---conversion function
+---to_char
+----to_date
+---to_number
+----cast  ::
+
+select to_char(SUBSCRIPTION_DATE,'dd-mm-yyyy') as date from customersn
+
+
+select to_number(12.456),round(5.456)
+
+select current_date
+select current_timestamp
+
+
+
+select value a
+from table(split_to_table('A*B*C','*'))
+
+select * from customersn limit 150
+
+
+select first_name|| ' ' ||last_name as name
+from customersn
+
+select first_name from customersn
+where first_name like '_n%'
+
+
+select first_name from customersn
+where first_name like any ('_n%', 'C%')
+
+select first_name from customersn
+where first_name ilike any ('_n%', 'c%')
+
+select first_name from customersn
+where first_name ilike 'andrew'
+
+select * from customersn
+where index between 4 and 12
+
+
+create or replace table t1 (t1 number)
+
+create or replace table t2 (t2 number)
+
+
+insert into t1 values(1)
+insert into t1 values(2)
+insert into t1 values(3)
+insert into t1 values(4)
+insert into t2 values(1)
+insert into t2 values(2)
+insert into t2 values(3)
+insert into t2 values(5)
+
+select * from t1
+union
+select * from t2
+
+select * from t1
+union all
+select * from t2
+
+select * from t1
+intersect
+select * from t2
+
+select * from t1
+minus
+select * from t2
+
+
+select 1=1
+
+select null=null
+
+
+
+select substr('sathish, kumar, s',1,regexp_instr('sathish, kumar, s',',',1,1)-1) as first_name,
+substr('sathish, kumar, s',regexp_instr('sathish, kumar, s',',',1,1)+1,regexp_instr('sathish, kumar, s',',',1,1)-2) as middle_name,
+substr('sathish, kumar, s',regexp_instr('sathish, kumar, s',',',1,1)-2,1) as middle_name1
+
+------>internal stage<-----
+
+----snowflake
+-----snowsql file  load
+
+--steps snowsql -a rw68546.ap-southeast-1 -u sathiesh 
+---pass
+
+---step1 use databse database name
+
+---step2 create stage stg
+---ls @stg
+
+---step3---> put file://D:\pgadmin\pgadmin\data\retail_db\categories\part-00000 @stg
+---check ls @stg
+
+---step4 create table
+
+---step5 create file_format 
+---create or replace file format csv
+----type =csv
+-----skip_header=0
+------field_delimiter=','
+------record_delimiter='\n'
+
+---step6  copy into categories
+----------from @stg/part-00000.gz
+-----------file_format=csv
+
+
+
+----->external stage<-----
+create or replace storage integration intg
+type=external_stage
+enabled=true
+storage_provider=s3
+storage_allowed_locations=('s3://26product/')
+storage_aws_role_arn='arn:aws:iam::992382594533:role/26products'
+
+
+
+create or replace stage stg1
+url=('s3://26product/')
+storage_integration=intg
+
+desc storage integration intg
+
+list @stg1
+
+---create table
+
+select $1,$2,$3,$4,$5 from @stg1/part-00000
+CREATE or replace TABLE productext (
+  product_id INT NOT NULL,
+  product_category_id INT NOT NULL,
+  product_name VARCHAR(45) NOT NULL,
+  product_description VARCHAR(255)  NULL,
+  product_price FLOAT NOT NULL,
+  product_image VARCHAR(255) NOT NULL,
+  PRIMARY KEY (product_id)
+);
+
+show integrations
+
+---creat file format
+
+create or replace file format csv1
+type=csv
+skip_header=0
+field_delimiter=','
+record_delimiter='\n'
+
+copy into productext
+from @stg1/part-00000
+file_format=csv1
+on_error=continue
+force=true
+validation_mode=return_all_errors
+---creating the error data in a seperate table
+create or replace table error_table
+as
+select * from table(validate (productext,job_id=>'01b7f766-3201-4d35-000a-8e7e00025ada'))
+
+select * from error_table
+
+
+---continous data load is snowpipe
+
+
+
+create or replace stage stage1
+url='s3://diwnov/'
+storage_integration=intgs3
+
+--create storage integration
+
+create or replace  storage integration intgs3
+type=external_stage
+enabled=true
+storage_provider=s3
+storage_allowed_locations=('s3://diwnov/')
+storage_aws_role_arn='arn:aws:iam::992382594533:role/diwinov'
+
+---copy into table 1st create table header
+
+CREATE or replace TABLE empdetailsregion (
+  emp_id INT NOT NULL,
+  emp_name VARCHAR(45) NOT NULL
+)
+
+
+---create file format
+
+create or replace file format csvs3
+type=csv
+skip_header=0
+field_delimiter=','
+record_delimiter='\n'
+
+copy into  empdetailsregion
+from @stage1
+file_format=csvs3
+on_error=continue
+
+
+
+desc storage integration intgs3
+
+
+-----above error
+
+create or replace stage stages3
+url='s3://diwinov1/diwinov1/'
+storage_integration=intgs31
+
+create or replace storage integration intgs31
+type=external_stage
+enabled=true
+storage_provider=s3
+storage_allowed_locations=('s3://diwinov1/diwinov1/')
+storage_aws_role_arn='arn:aws:iam::992382594533:role/diwinov12'
+ 
+
+desc storage integration intgs31
+
+
+
+CREATE or replace TABLE empdetailsregion (
+  emp_id INT NOT NULL,
+  emp_name VARCHAR(45) NOT NULL
+)
+
+
+---create file format
+
+create or replace file format csvs31
+type=csv
+skip_header=1
+field_delimiter=','
+record_delimiter='\n'
+
+copy into  empdetailsregion
+from @stages3
+file_format=csvs31
+on_error=continue
+force=true
+
+
+---snowpipe 
+
+create or replace pipe s3pipe
+auto_ingest=true
+as 
+copy into empdetailsregion
+from @stages3
+file_format=csvs31
+on_error=continue
+
+desc pipe s3pipe
+
+select * from empdetailsregion
+
+
+---to find bad data 
+
+insert into errortable
+
+-----to store the bad data in the error table
+
+create or replace table etable
+as
+select * from table(validate_pipe_load(pipe_name=>'s3pipe',start_time=> dateadd(hour,-1,current_timestamp())))
+
+---error table
+
+select * from etable
+
+
+---merge statement is type of 'incremental load'
+
+create or replace table mergetab1 
+(
+id int,
+name varchar
+)
+
+create or replace table mergetab2
+(
+id int,
+name varchar
+)
+
+insert into mergetab1 values (1,'A'),(2,'B'),(3,'C'),(4,'D')
+
+
+insert into mergetab2 values (1,'X'),(2,'Y'),(3,'Z'),(5,'F')
+
+merge into mergetab2
+using mergetab1
+on(mergetab1.id=mergetab2.id)
+when matched then
+update set mergetab2.name=mergetab1.name
+when not matched then
+insert values(mergetab1.id,mergetab1.name)
+
+select * from mergetab2
+
+show parameters
+
+select * from INFORMATION_SCHEMA.tables
+
+select current_timestamp
+
+show parameters;
+-------------------------------------------------------------------------------------------------------------------------
+ALTER SESSION SET TIMEZONE = 'Asia/Kolkata';
+
+
+
+select * from categories ---58 records
+
+delete from categories
+where category_id between 4 and 11 ---8 records removed
+
+select * from categories ------50 records -----17:58
+
+
+update categories
+set category_name='VolleyBall' ----------18:01
+where category_id between 1 and 4
+
+select * from categories
+
+
+select * from categories
+at (timestamp =>'2024-11-06 17:58:05 +530') :: TIMESTAMP-TZ);
+--------------------------------------------------------------------------------------------------------------------
+
+
+
+
+CREATE TABLE timetravel (
+  category_id INT NOT NULL,
+  category_department_id INT NOT NULL,
+  category_name VARCHAR(45) NOT NULL,   -----18:13
+  PRIMARY KEY (category_id)
+)
+Data_retention_time_in_days=90
+
+
+
+
+
+delete from timetravel    ----------------18:15
+where category_id between 4 and 11 ---8 records removed
+
+
+select * from timetravel  -------8 records removed
+
+update timetravel
+set category_name='VolleyBall' ----------18:17
+where category_id between 1 and 4
+
+
+select * from timetravel
+
+
+
+select current_timestamp
+---------something like this it will come
+select * from timetravel
+At (TimeStamp=>'2024-11-06 18:17:10.285 +0530')
+
+
+--------
+
+select * from timetravel
+at (offset=>-60*6)
+
+
+select * from timetravel
+at (offset=>-60*9)
+
+
+select * from timetravel
+before (statement=>'01b8309f-3201-4f69-000a-8e7e00038a9a')  ---to find the pervious record of this query id
+
+
+
+-------task
+---1standalonetask
+---2treetask
+---------------------standalone task
+create or replace table tasktable1(
+a number
+)
+
+create or replace task tsk
+warehouse=COMPUTE_WH
+schedule='1 minute'
+as
+Insert into tasktable1 values(1)
+
+
+SHOW WAREHOUSES;
+
+alter task tsk resume
+
+alter task tsk suspend
+
+select * from tasktable1
+
+
+--------tree task
+ select current_timestamp
+
+ create or replace table tasktable1(
+a number
+)
+
+create or replace task projman
+warehouse=COMPUTE_WH
+schedule='USING CRON 10 14 7 11 4 UTC'
+as
+create or replace table tsk_tab (tsk_name varchar)
+
+create or replace task tl1
+warehouse=COMPUTE_WH
+after projman
+as 
+insert into tsk_tab values('tl1')
+
+
+create or replace task tl2
+warehouse=COMPUTE_WH
+after projman
+as 
+insert into tsk_tab values('tl2')
+
+
+
+create or replace task r1
+warehouse=COMPUTE_WH
+after tl1
+as 
+insert into tsk_tab values('r1')
+
+
+
+create or replace task r2
+warehouse=COMPUTE_WH
+after tl1
+as 
+insert into tsk_tab values('r2')
+
+
+
+create or replace task r3
+warehouse=COMPUTE_WH
+after tl2
+as 
+insert into tsk_tab values('r3')
+
+
+alter task r3 resume
+alter task r2 resume
+alter task r1 resume
+alter task tl1 resume
+alter task tl2 resume
+alter task projman resume
+
+select * from tsk_tab
+
+alter task r3 suspend
+alter task r2 suspend
+alter task r1 suspend
+alter task tl1 suspend
+alter task tl2 suspend
+alter task projman suspend
